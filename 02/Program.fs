@@ -55,10 +55,14 @@ let parseGame (line: string) =
     let id = int game.[4..]
     let configurations = parseConfigurations configs
     { Id = id; Configurations = configurations }
+
+let solve (file: string) =
+    printfn $"Solving %s{file}"
+    let games = File.ReadAllLines(file) |> Array.map parseGame
+    games |> Array.filter (fun game -> isValidGame game 12 13 14)
+    |> Array.map (fun game -> game.Id)
+    |> Array.sum
+    |> printfn "%d"
     
-printfn "sample.txt"
-let games = File.ReadAllLines("sample.txt") |> Array.map parseGame
-games |> Array.filter (fun game -> isValidGame game 12 13 14)
-|> Array.map (fun game -> game.Id)
-|> Array.sum
-|> printfn "%d"
+solve "sample.txt"
+solve "input.txt"
