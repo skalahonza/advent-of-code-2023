@@ -55,14 +55,35 @@ let parseGame (line: string) =
     let id = int game.[4..]
     let configurations = parseConfigurations configs
     { Id = id; Configurations = configurations }
+    
+/// Get minimum configuration for a game
+let getMinConfiguration game ={
+    Red = game.Configurations |> List.map (fun config -> config.Red) |> List.max
+    Green = game.Configurations |> List.map (fun config -> config.Green) |> List.max
+    Blue = game.Configurations |> List.map (fun config -> config.Blue) |> List.max
+}
 
-let solve (file: string) =
-    printfn $"Solving %s{file}"
+/// Get "power" of a configuration
+let powerOfConfiguration config =
+    config.Red * config.Green * config.Blue
+
+let solve1 (file: string) =
+    printfn $"Solving part1 for %s{file}"
     let games = File.ReadAllLines(file) |> Array.map parseGame
     games |> Array.filter (fun game -> isValidGame game 12 13 14)
     |> Array.map (fun game -> game.Id)
     |> Array.sum
     |> printfn "%d"
     
-solve "sample.txt"
-solve "input.txt"
+let solve2 (file: string) =
+    printfn $"Solving part2 for %s{file}"
+    let games = File.ReadAllLines(file) |> Array.map parseGame
+    games |> Array.map getMinConfiguration
+    |> Array.map powerOfConfiguration
+    |> Array.sum
+    |> printfn "%d"
+    
+solve1 "sample.txt"
+solve1 "input.txt"
+solve2 "sample.txt"
+solve2 "input.txt"
