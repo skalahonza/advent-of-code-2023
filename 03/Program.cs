@@ -20,6 +20,34 @@ void Solve1(string path)
 
 void Solve2(string path)
 {
+    Console.WriteLine(path);
+    var lines = File.ReadAllLines(path);
+    var matrix = LoadMatrix(lines);
+    var partNumbers = lines
+        .SelectMany(ParseNumbers)
+        .Where(x => x.IsPartNumber(matrix))
+        .ToList();
+    var gears = partNumbers
+        .SelectMany(x => x.GetAdjacentGears(matrix))
+        .ToList();
+
+    var significantGears = gears
+        .GroupBy(x => (x.X, x.Y))
+        .Select(x => new
+        {
+            Gear = x.First(),
+            Numbers = x.Select(y => y.Number).DistinctBy(x => x.Id).ToFrozenSet(),
+        })
+        .Where(x => x.Numbers.Count == 2)
+        .Select(x => new
+        {
+            Gear = x.Gear,
+            Numbers = x.Gear,
+            Ration = x.Numbers.First().Value * x.Numbers.Last().Value
+        })
+        .ToList();
+    
+    Console.WriteLine(significantGears.Select(x => x.Ration).Sum());
 }
 
 char[,] LoadMatrix(string[] lines)
@@ -97,5 +125,40 @@ public record NumberBox(int X, int Y)
 
 public record Number(int Value, FrozenSet<NumberBox> Boxes)
 {
+    public Guid Id { get; } = Guid.NewGuid();
+    
     public bool IsPartNumber(char[,] matrix) => Boxes.Any(x => x.IsAdjacentToSymbol(matrix));
+
+    public IEnumerable<Gear> GetAdjacentGears(char[,] matrix)
+    {
+        foreach (var box in Boxes)
+        {
+            for (var i = -1; i <= 1; i++)
+            {
+                for (var j = -1; j <= 1; j++)
+                {
+                    if(i == 0 && j == 0)
+                    {
+                        continue;
+                    }
+                
+                    var x = box.X + i;
+                    var y = box.Y + j;
+                
+                    if(x < 0 || x >= matrix.GetLength(1) || y < 0 || y >= matrix.GetLength(0))
+                    {
+                        continue;
+                    }
+                
+                    var symbol = matrix[y, x];
+                    if (symbol == '*')
+                    {
+                        yield return new Gear(x, y, this);
+                    }
+                }
+            }   
+        }
+    }
 }
+
+public record Gear(int X, int Y, Number Number);
