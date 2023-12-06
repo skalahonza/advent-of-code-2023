@@ -2,6 +2,8 @@
 
 Solve1("sample.txt");
 Solve1("input.txt"); // 214922730
+Solve2("sample.txt");
+Solve2("input.txt");
 return;
 
 void Solve1(string path)
@@ -36,6 +38,39 @@ void Solve1(string path)
 
 void Solve2(string path)
 {
+    Console.WriteLine(path);
+
+    var lines = File.ReadAllLines(path);
+    var seeds = ParseSeeds(lines);
+    var chunks = seeds.Chunk(2);
+    
+    var seedToSoil = ParseMap(lines, "seed-to-soil");
+    var soilToFertilizer = ParseMap(lines, "soil-to-fertilizer");
+    var fertilizerToWater = ParseMap(lines, "fertilizer-to-water");
+    var waterToLight = ParseMap(lines, "water-to-light");
+    var lightToTemperature = ParseMap(lines, "light-to-temperature");
+    var temperatureToHumidity = ParseMap(lines, "temperature-to-humidity");
+    var humidityToLocation = ParseMap(lines, "humidity-to-location");
+    
+    var locations = new List<long>();
+    foreach (var chunk in chunks)
+    {
+        var start = chunk.First();
+        var length = chunk.Last();
+        for (var seed = start; seed < start + length; seed++)
+        {
+            var soil = seedToSoil.Get(seed);
+            var fertilizer = soilToFertilizer.Get(soil);
+            var water = fertilizerToWater.Get(fertilizer);
+            var light = waterToLight.Get(water);
+            var temperature = lightToTemperature.Get(light);
+            var humidity = temperatureToHumidity.Get(temperature);
+            var location = humidityToLocation.Get(humidity);
+            locations.Add(location);
+        }
+    }
+
+    Console.WriteLine("Result: " + locations.Min());
 }
 
 long[] ParseSeeds(string[] lines)
